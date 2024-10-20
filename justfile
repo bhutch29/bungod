@@ -1,10 +1,11 @@
+tailscale_ip := `tailscale ip --4`
 default: run
 
 run:
   mix phx.server
 
 debug:
-  iex -S mix phx.server
+  iex --name bungod@{{tailscale_ip}} --cookie secret_cookie -S mix phx.server
 
 code:
   zellij attach --create bungod

@@ -1,3 +1,7 @@
+# TODO
+
+Filter tailscale IPs based on http response of health node before handing over to libcluster
+
 # Bungod
 
 To start your Phoenix server:
