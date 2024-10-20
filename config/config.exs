@@ -52,6 +52,13 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Ensure Clipboard lib uses system clipboard, not X11
+config :clipboard,
+  unix: [
+    copy: {"xclip", ["-i", "-sel", "clip"]},
+    paste: {"xclip", ["-o", "-sel", "clip"]}
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

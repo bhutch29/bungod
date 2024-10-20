@@ -28,6 +28,7 @@ defmodule Bungod.Application do
       {Phoenix.PubSub, name: Bungod.PubSub},
       # Start a worker by calling: Bungod.Worker.start_link(arg)
       # {Bungod.Worker, arg},
+      Bungod.ClipboardWatcher,
       # Start to serve requests, typically the last entry
       BungodWeb.Endpoint
     ]

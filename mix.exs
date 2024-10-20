@@ -59,7 +59,8 @@ defmodule Bungod.MixProject do
       {:bandit, "~> 1.5"},
 
       {:libcluster, "~> 3.4"},
-      {:req, "~> 0.5.6"}
+      {:req, "~> 0.5.6"},
+      {:clipboard, "~> 0.2.1"},
     ]
   end
 
