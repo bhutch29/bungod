@@ -23,3 +23,6 @@ docker_pull:
 
 docker_run:
   docker run -p 4000:4000 gitea.bunny-godzilla.ts.net/bhutch/bungod:latest
+
+docker_run_host:
+  docker run --network host gitea.bunny-godzilla.ts.net/bhutch/bungod:latest
