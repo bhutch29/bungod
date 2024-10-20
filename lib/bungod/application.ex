@@ -7,7 +7,18 @@ defmodule Bungod.Application do
 
   @impl true
   def start(_type, _args) do
+    topologies = [
+      tailscale: [
+        strategy: Cluster.Strategy.Tailscale,
+        config: [
+          authkey: "tskey-api-kpMa5ok4fv11CNTRL-P45sy3ys7RNJH1HtUyKQRNzpGkLToFAVC",
+          tailnet: "bunny-godzilla.ts.net",
+          appname: "bungod"
+        ]
+      ]
+    ]
     children = [
+      {Cluster.Supervisor, [topologies, [name: Bungod.ClusterSupervisor]]},
       BungodWeb.Telemetry,
       Bungod.Repo,
       {Ecto.Migrator,

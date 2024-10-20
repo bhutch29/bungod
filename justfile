@@ -1,3 +1,14 @@
+default: run
+
+run:
+  mix phx.server
+
+debug:
+  iex -S mix phx.server
+
+code:
+  zellij attach --create bungod
+
 docker_login:
   docker login gitea.bunny-godzilla.ts.net
 
