@@ -18,5 +18,8 @@ docker_build:
 docker_push:
   docker push gitea.bunny-godzilla.ts.net/bhutch/bungod:latest
 
+docker_pull:
+  docker pull gitea.bunny-godzilla.ts.net/bhutch/bungod:latest
+
 docker_run:
   docker run -p 4000:4000 gitea.bunny-godzilla.ts.net/bhutch/bungod:latest
