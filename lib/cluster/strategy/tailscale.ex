@@ -66,7 +66,6 @@ defmodule Cluster.Strategy.Tailscale do
     |> Enum.filter(fn ip -> 
       # TODO: replace :4000 port here?
       url = "http://#{ip}:4000/is-bungod"
-      IO.puts url
       case Req.get(url: url, retry: false, redirect: false) do
         {:ok, response} when response.status == 200 ->
           true
