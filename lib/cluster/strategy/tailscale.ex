@@ -63,6 +63,18 @@ defmodule Cluster.Strategy.Tailscale do
 
     list_devices(tailnet, authkey)
     |> Enum.map(&List.first(&1["addresses"]))
+    |> Enum.filter(fn ip -> 
+      # TODO: replace :4000 port here?
+      url = "http://#{ip}:4000/is-bungod"
+      case Req.get(url: url, retry: false, redirect: false) do
+        {:ok, response} when response.status == 200 ->
+          true
+        {:ok, _response} ->
+          false
+        {:error, _error} ->
+          false
+      end
+    end)
     |> Enum.map(&"#{appname}@#{&1}")
     |> Enum.map(&String.to_atom/1)
     |> MapSet.new()

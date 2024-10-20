@@ -58,7 +58,8 @@ defmodule Bungod.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
 
-      {:libcluster, "~> 3.4"}
+      {:libcluster, "~> 3.4"},
+      {:req, "~> 0.5.6"}
     ]
   end
 
