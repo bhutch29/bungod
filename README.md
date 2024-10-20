@@ -1,6 +1,6 @@
 # TODO
 
-Filter tailscale IPs based on http response of health node before handing over to libcluster
+Tailscale inside docker containers. Docker compose?
 
 # Bungod
 

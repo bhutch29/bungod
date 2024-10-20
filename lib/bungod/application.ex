@@ -29,6 +29,7 @@ defmodule Bungod.Application do
       # Start a worker by calling: Bungod.Worker.start_link(arg)
       # {Bungod.Worker, arg},
       Bungod.ClipboardWatcher,
+      Bungod.ClipboardListener,
       # Start to serve requests, typically the last entry
       BungodWeb.Endpoint
     ]

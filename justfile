@@ -23,7 +23,4 @@ docker_pull:
   docker pull gitea.bunny-godzilla.ts.net/bhutch/bungod:latest
 
 docker_run:
-  docker run -p 4000:4000 -e RELEASE_COOKIE=secret_cookie -e RELEASE_NODE=bungod@{{tailscale_ip}} -e RELEASE_DISTRIBUTION=name gitea.bunny-godzilla.ts.net/bhutch/bungod:latest
-
-docker_run_host:
   docker run --network host -e RELEASE_COOKIE=secret_cookie -e RELEASE_NODE=bungod@{{tailscale_ip}} -e RELEASE_DISTRIBUTION=name gitea.bunny-godzilla.ts.net/bhutch/bungod:latest

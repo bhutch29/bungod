@@ -1,28 +1,30 @@
 defmodule Bungod.ClipboardWatcher do
-  use GenServer  
+  use GenServer
+  require Logger
 
   def start_link(_opts \\ []) do
     GenServer.start_link(__MODULE__, [])
-  end  
+  end
 
   def init(_) do
     schedule_check()
     {:ok, ""}
-  end  
+  end
 
   def handle_info(:check_clipboard, state) do
-    clipboard = Clipboard.paste # TODO: ? |> String.trim
+    clipboard = Clipboard.paste()
+
     if clipboard != "" do
       if clipboard != state do
-        # TODO: pubsub
-        IO.puts "changed!"
+        Logger.debug("Clipboard contents changed, broadcasting.")
+        Phoenix.PubSub.broadcast(Bungod.PubSub, "clipboard", {:new, clipboard})
       end
     end
 
     schedule_check()
 
     {:noreply, clipboard}
-  end  
+  end
 
   defp schedule_check do
     Process.send_after(self(), :check_clipboard, 2000)
