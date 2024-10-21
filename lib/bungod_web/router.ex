@@ -18,13 +18,14 @@ defmodule BungodWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    get "/is-bungod", HealthController, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", BungodWeb do
-  #   pipe_through :api
-  # end
+
+  scope "/api", BungodWeb do
+    pipe_through :api
+
+    get "/is-bungod", HealthController, :index
+  end
 
   # Enable LiveDashboard in development
   if Application.compile_env(:bungod, :dev_routes) do
