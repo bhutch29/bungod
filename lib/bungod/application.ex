@@ -11,6 +11,7 @@ defmodule Bungod.Application do
       tailscale: [ strategy: Cluster.Strategy.Tailscale ]
     ]
     children = [
+      Bungod.ClusterWatcher,
       {Cluster.Supervisor, [topologies, [name: Bungod.ClusterSupervisor]]},
       BungodWeb.Telemetry,
       Bungod.Repo,
