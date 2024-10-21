@@ -4,22 +4,15 @@ defmodule Cluster.Strategy.Tailscale do
 
       config :libcluster,
         topologies: [
-          tailscale: [
-            strategy: Cluster.Strategy.Tailscale,
-            config: [
-              authkey: "tskey-api-kpMa5ok4fv11CNTRL-P45sy3ys7RNJH1HtUyKQRNzpGkLToFAVC",
-              tailnet: "bunny-godzilla.ts.net",
-              appname: "bungod"
-            ]
-          ]
+          tailscale: [ strategy: Cluster.Strategy.Tailscale ]
         ]
 
   """
   use GenServer
   alias Cluster.Strategy.State
+  require Logger
 
   @polling_interval 30_000
-  @endpoint "api.tailscale.com/api/v2"
 
   def start_link(args), do: GenServer.start_link(__MODULE__, args)
 
@@ -56,13 +49,8 @@ defmodule Cluster.Strategy.Tailscale do
     %{state | meta: nodes}
   end
 
-  defp get_nodes(%State{config: config}) do
-    tailnet = Keyword.fetch!(config, :tailnet)
-    appname = Keyword.fetch!(config, :appname)
-    authkey = Keyword.fetch!(config, :authkey)
-
-    list_devices(tailnet, authkey)
-    |> Enum.map(&List.first(&1["addresses"]))
+  defp get_nodes(%State{config: _config}) do
+    list_devices()
     |> Enum.filter(fn ip -> 
       # TODO: replace :4000 port here?
       url = "http://#{ip}:4000/is-bungod"
@@ -75,7 +63,7 @@ defmodule Cluster.Strategy.Tailscale do
           false
       end
     end)
-    |> Enum.map(&"#{appname}@#{&1}")
+    |> Enum.map(&"bungod@#{&1}")
     |> Enum.map(&String.to_atom/1)
     |> MapSet.new()
   end
@@ -118,23 +106,31 @@ defmodule Cluster.Strategy.Tailscale do
     end
   end
 
-  def list_devices(tailnet, authkey) do
-    case get("/tailnet/#{tailnet}/devices", authkey) do
-      {:ok, devices} -> devices["devices"]
-      _ -> []
+  def list_devices() do
+    json = case Jason.decode(tailscale_status!()) do
+      {:ok, result} -> result
+      {:error, error} -> 
+        Logger.error("Could not parse tailscale status json: #{error}")
+        []
     end
+
+    Enum.map(json["Peer"], &elem(&1, 1))
+    |> Enum.filter(&!Map.has_key?(&1, "Tags"))
+    |> Enum.filter(&(&1["Online"]))
+    |> Enum.map(&(&1["TailscaleIPs"]))
+    |> Enum.map(&List.first(&1))
   end
 
-  def get(path, authkey) do
-    case :httpc.request(:get, {"https://#{authkey}:@#{@endpoint}/#{path}", []}, [], []) do
-      {:ok, {{_version, 200, _status}, _headers, body}} ->
-        {:ok, Jason.decode!(body)}
-
-      {:ok, {{_version, code, status}, _headers, body}} ->
-        {:warn, [code, status, body]}
-
-      {:error, reason} ->
-        {:error, reason}
+  def tailscale_status!() do
+    case System.cmd("tailscale", ["status", "--json"], stderr_to_stdout: true) do
+      {output, 0} -> output
+      {output, code} ->
+        if String.contains?(output, "is Tailscale running?") do
+          Logger.error("Tailscale isn't running")
+        else
+          Logger.error("Unknown tailscale error. Code: #{code}, Message: #{output}")  
+        end
+        ""
     end
   end
 end
