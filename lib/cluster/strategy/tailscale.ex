@@ -122,7 +122,7 @@ defmodule Cluster.Strategy.Tailscale do
   end
 
   def tailscale_status!() do
-    case System.cmd("tailscale", ["status", "--json"], stderr_to_stdout: true) do
+    case System.cmd("tailscale", ["status", "--json"]) do
       {output, 0} -> output
       {output, code} ->
         if String.contains?(output, "is Tailscale running?") do
