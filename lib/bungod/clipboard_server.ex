@@ -19,7 +19,7 @@ defmodule Bungod.ClipboardServer do
 
   def handle_info({:update_clipboard, clipboard}, state) do
     Logger.info("New clip: #{clipboard}")
-    Clipboard.copy(clipboard <> "HAHAHA")
+    Clipboard.copy(clipboard)
     {:noreply, %{state | content: clipboard, syncing: true}}
   end
 
