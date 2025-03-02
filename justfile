@@ -31,6 +31,12 @@ reinstall_service:
   systemctl daemon-reload
   systemctl restart bungod
 
+restart_service:
+  systemctl restart bungod
+
+monitor_service:
+  journalctl -u bungod --follow
+
 code:
   zellij attach --create bungod
 
