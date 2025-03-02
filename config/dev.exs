@@ -51,6 +51,7 @@ config :bungod, BungodWeb.Endpoint,
 
 # Watch static and templates for browser reloading.
 config :bungod, BungodWeb.Endpoint,
+  server: true,
   live_reload: [
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
