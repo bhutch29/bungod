@@ -9,9 +9,7 @@ defmodule Bungod.ClipboardServer do
   def init(_) do
     Phoenix.PubSub.subscribe(Bungod.PubSub, "clipboard")
     schedule_check()
-    clipboard_content = Clipboard.paste();
-    Logger.info("TEST: #{clipboard_content}")
-    {:ok, %{content: clipboard_content, syncing: false}}
+    {:ok, %{content: Clipboard.paste(), syncing: false}}
   end
 
   # Clipboard uses Port which sends :closed message that needed handling to avoid crash
