@@ -1,0 +1,18 @@
+[Unit]
+Description=Bungod daemon
+ 
+[Service]
+Type=simple
+Restart=on-failure
+Environment="MIX_ENV=prod"
+Environment="LANG=en_US.UTF-8"
+Environment="DISPLAY=:0"
+Environment="XAUTHORITY=/home/bhutch/.Xauthority"
+ 
+WorkingDirectory=/home/bhutch/projects/elixir/bungod
+
+ExecStart=/home/bhutch/projects/elixir/bungod/_build/prod/rel/bungod/bin/bungod start
+ExecStop=/home/bhutch/projects/elixir/bungod/_build/prod/rel/bungod/bin/bungod stop
+
+[Install]
+WantedBy=multi-user.target

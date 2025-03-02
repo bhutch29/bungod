@@ -16,6 +16,15 @@ release:
 release_prod:
   env MIX_ENV=prod mix release
 
+install_service:
+  sudo cp bungod.service /etc/systemd/system
+  systemctl enable --now bungod
+
+reinstall_service:
+  sudo cp bungod.service /etc/systemd/system
+  systemctl daemon-reload
+  systemctl restart bungod
+
 code:
   zellij attach --create bungod
 
