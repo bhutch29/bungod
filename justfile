@@ -16,6 +16,12 @@ release:
 release_prod:
   env MIX_ENV=prod mix release
 
+run_release:
+  _build/dev/rel/bungod/bin/bungod start
+
+run_release_prod:
+  _build/prod/rel/bungod/bin/bungod start
+
 install_service:
   sudo cp bungod.service /etc/systemd/system
   systemctl enable --now bungod

@@ -1,5 +1,7 @@
 [Unit]
 Description=Bungod daemon
+After=sys-subsystem-net-devices-tailscale0.device tailscaled.service
+Requires=tailscaled.service
  
 [Service]
 Type=simple
