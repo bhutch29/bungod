@@ -7,8 +7,23 @@ run:
 debug:
   iex --name bungod@{{tailscale_ip}} --cookie secret_cookie -S mix phx.server
 
+one-time-setup:
+  mix phx.gen.release
+
+release:
+  mix release
+
+release_prod:
+  env MIX_ENV=prod mix release
+
 code:
   zellij attach --create bungod
+
+
+
+
+
+
 
 docker_login:
   docker login gitea.bunny-godzilla.ts.net
