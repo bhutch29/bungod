@@ -8,6 +8,7 @@ debug:
   iex --name bungod@{{tailscale_ip}} --cookie secret_cookie -S mix phx.server
 
 one-time-setup:
+  mix deps.get
   mix phx.gen.release
 
 release:
