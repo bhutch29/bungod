@@ -28,7 +28,7 @@ defmodule Bungod.ClipboardServer do
   def handle_info(:check_clipboard, %{content: content, syncing: syncing} = state) do
     clipboard = Clipboard.paste()
 
-    if clipboard != "" && clipboard != content && !syncing do
+    if clipboard != nil && clipboard != "" && clipboard != content && !syncing do
       Logger.debug("Clipboard contents changed, broadcasting.")
       Phoenix.PubSub.broadcast(Bungod.PubSub, "clipboard", {:update_clipboard, clipboard})
     end
