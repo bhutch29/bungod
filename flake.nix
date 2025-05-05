@@ -94,8 +94,7 @@
               }:
               let
                 cfg = config.services.bungod;
-                user = "bungod";
-                dataDir = "/var/lib/bungod";
+                bungodPkg = self.packages.${system}.default;
               in
               {
                 options.services.bungod = {
@@ -107,36 +106,30 @@
                   };
                 };
                 config = lib.mkIf cfg.enable {
-                  users.users.${user} = {
-                    isSystemUser = true;
-                    group = user;
-                    home = dataDir;
-                    createHome = true;
-                  };
-                  users.groups.${user} = { };
+                  environment.systemPackages = [ bungodPkg ];
 
                   systemd.services = {
                     bungod = {
-                      # TODO: copy config from bungod.service
-                      description = "Start bungod";
+                      description = "Bungod daemon";
                       wantedBy = [ "multi-user.target" ];
-                      script = ''
-                        export RELEASE_COOKIE=secret_cookie
-                        echo hello
-
-                        # ${default}/bin/server
-                      '';
-                      serviceConfig = {
-                        User = user;
-                        WorkingDirectory = "${dataDir}";
-                        Group = user;
-                      };
-
+                      after = ["sys-subsystem-net-devices-tailscale0.device" "tailscaled.service"];
+                      requires = ["tailscaled.service"];
                       environment = {
-                        RELEASE_DISTRIBUTION = "name";
-                        # Home is needed to connect to the node with iex
-                        HOME = "${dataDir}";
                         PORT = toString cfg.port;
+                        MIX_ENV = "prod";
+                        PHX_SERVER = "true";
+                        LANG = "en_US.UTF-8";
+                        DISPLAY = ":0";
+                        XAUTHORITY = "/home/bhutch/.Xauthority";
+                      };
+                      serviceConfig = {
+                        Type = "simple";
+                        Restart = "on-failure";
+                        Environment = "PATH=${pkgs.tailscale}/bin:$PATH";
+
+                        # WorkingDirectory = "/home/bhutch/projects/elixir/bungod";
+                        ExecStart = "${bungodPkg}/bin/bungod start";
+                        ExecStop = "${bungodPkg}/bin/bungod stop";
                       };
                     };
                   };
