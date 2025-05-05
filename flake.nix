@@ -1,77 +1,136 @@
 {
   description = "A Nix-flake-based Elixir development environment";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
 
-  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
-
-  outputs = inputs:
-    let
-      supportedSystems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
-      forEachSupportedSystem = f: inputs.nixpkgs.lib.genAttrs supportedSystems (system: f {
-        pkgs = import inputs.nixpkgs {
-          inherit system;
-          overlays = [ inputs.self.overlays.default ];
-        };
-      });
-    in
+  outputs =
     {
-      overlays.default = final: prev: rec {
-        # documentation
-        # https://nixos.org/manual/nixpkgs/stable/#sec-beam
-
-        # ==== ERLANG ====
-
-        # use whatever version is currently defined in nixpkgs
-        # erlang = pkgs.beam.interpreters.erlang;
-
-        # use latest version of Erlang 27
-        erlang = final.beam.interpreters.erlang_27;
-
-        # specify exact version of Erlang OTP
-        # erlang = pkgs.beam.interpreters.erlang.override {
-        #   version = "26.2.2";
-        #   sha256 = "sha256-7S+mC4pDcbXyhW2r5y8+VcX9JQXq5iEUJZiFmgVMPZ0=";
-        # }
-
-        # ==== BEAM packages ====
-
-        # all BEAM packages will be compile with your preferred erlang version
-        pkgs-beam = final.beam.packagesWith erlang;
-
-        # ==== Elixir ====
-
-        # use whatever version is currently defined in nixpkgs
-        # elixir = pkgs-beam.elixir;
-
-        # use latest version of Elixir 1.17
-        elixir = pkgs-beam.elixir_1_17;
-
-        # specify exact version of Elixir
-        # elixir = pkgs-beam.elixir.override {
-        #   version = "1.17.1";
-        #   sha256 = "sha256-a7A+426uuo3bUjggkglY1lqHmSbZNpjPaFpQUXYtW9k=";
-        # };
-      };
-
-      devShells = forEachSupportedSystem ({ pkgs }: {
-        default = pkgs.mkShell {
-          packages = with pkgs; [
-            # use the Elixr/OTP versions defined above; will also install OTP, mix, hex, rebar3
-            elixir
-
-            # mix needs it for downloading dependencies
-            git
-
-            # probably needed for your Phoenix assets
-            nodejs_20
-          ]
-          ++
-          # Linux only
-          pkgs.lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-            gigalixir
-            inotify-tools
-            libnotify
-          ]);
+      nixpkgs,
+      flake-utils,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
         };
-      });
-    };
+        erl = pkgs.beam.interpreters.erlang_27;
+        erlangPackages = pkgs.beam.packagesWith erl;
+        elixir = erlangPackages.elixir;
+      in
+      {
+        devShells = {
+          default = pkgs.mkShell {
+            packages =
+              with pkgs;
+              [
+                elixir
+                git
+                nodejs_20 # probably needed for your Phoenix assets
+              ]
+              ++ pkgs.lib.optionals pkgs.stdenv.isLinux (
+                with pkgs;
+                [
+                  gigalixir
+                  inotify-tools
+                  libnotify
+                ]
+              );
+          };
+        };
+
+        packages =
+          let
+            version = "0.1.0";
+            src = ./.;
+            mixFodDeps = erlangPackages.fetchMixDeps {
+              inherit version src;
+              pname = "elixir-deps";
+              sha256 = "sha256-qVDJB0agqIzVfV2yjZMzwVHzyR8r61OO52oh0vvBeAc=";
+            };
+            translatedPlatform =
+              {
+                aarch64-darwin = "macos-arm64";
+                aarch64-linux = "linux-arm64";
+                armv7l-linux = "linux-armv7";
+                x86_64-darwin = "macos-x64";
+                x86_64-linux = "linux-x64";
+              }
+              .${system};
+          in
+          rec {
+            default = erlangPackages.mixRelease {
+              inherit version src mixFodDeps;
+              pname = "bungod";
+
+              preInstall = ''
+                ln -s ${pkgs.tailwindcss}/bin/tailwindcss _build/tailwind-${translatedPlatform}
+                ln -s ${pkgs.esbuild}/bin/esbuild _build/esbuild-${translatedPlatform}
+
+                ${elixir}/bin/mix assets.deploy
+                ${elixir}/bin/mix phx.gen.release
+              '';
+            };
+            nixosModule =
+              {
+                config,
+                lib,
+                ...
+              }:
+              let
+                cfg = config.services.bungod;
+                user = "bungod";
+                dataDir = "/var/lib/bungod";
+              in
+              {
+                options.services.bungod = {
+                  enable = lib.mkEnableOption "bungod";
+                  port = lib.mkOption {
+                    type = lib.types.port;
+                    default = 4000;
+                    description = "Port to listen on, 4000 by default";
+                  };
+                };
+                config = lib.mkIf cfg.enable {
+                  users.users.${user} = {
+                    isSystemUser = true;
+                    group = user;
+                    home = dataDir;
+                    createHome = true;
+                  };
+                  users.groups.${user} = { };
+
+                  systemd.services = {
+                    bungod = {
+                      # TODO: copy config from bungod.service
+                      description = "Start bungod";
+                      wantedBy = [ "multi-user.target" ];
+                      script = ''
+                        export RELEASE_COOKIE=secret_cookie
+
+                        ${default}/bin/migrate
+                        ${default}/bin/server
+                      '';
+                      serviceConfig = {
+                        User = user;
+                        WorkingDirectory = "${dataDir}";
+                        Group = user;
+                      };
+
+                      environment = {
+                        RELEASE_DISTRIBUTION = "name";
+                        # Home is needed to connect to the node with iex
+                        HOME = "${dataDir}";
+                        PORT = toString cfg.port;
+                      };
+                    };
+                  };
+                };
+              };
+          };
+      }
+    );
 }
