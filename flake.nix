@@ -7,6 +7,7 @@
 
   outputs =
     {
+      self,
       nixpkgs,
       flake-utils,
       ...
@@ -45,7 +46,11 @@
         packages =
           let
             version = "0.1.0";
-            src = ./.;
+            # src = ./.;
+            src = builtins.fetchGit {
+              url = "https://github.com/bhutch29/bungod.git";
+              ref = "master";
+            };
             mixFodDeps = erlangPackages.fetchMixDeps {
               inherit version src;
               pname = "elixir-deps";
@@ -65,6 +70,8 @@
             default = erlangPackages.mixRelease {
               inherit version src mixFodDeps;
               pname = "bungod";
+
+              MIX_ENV = "prod";
 
               preInstall = ''
                 ln -s ${pkgs.tailwindcss}/bin/tailwindcss _build/tailwind-${translatedPlatform}
