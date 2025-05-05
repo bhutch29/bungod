@@ -46,11 +46,17 @@
         packages =
           let
             version = "0.1.0";
-            # src = ./.;
-            src = builtins.fetchGit {
-              url = "https://github.com/bhutch29/bungod.git";
-              ref = "master";
-            };
+            src = pkgs.nix-gitignore.gitignoreSource [] ./.;
+            # src = pkgs.lib.cleanSourceWith {
+            #   src = ./.;
+            #   name = "bungod-source";
+            #   filter = pkgs.lib.cleanSourceFilter;
+            # };
+            # src = builtins.fetchGit {
+            #   url = "https://github.com/bhutch29/bungod.git";
+            #   ref = "master";
+            #   rev = "8b6b5e3d8bf103c6450ac9259341fc9f1946e77a";
+            # };
             mixFodDeps = erlangPackages.fetchMixDeps {
               inherit version src;
               pname = "elixir-deps";
@@ -78,7 +84,6 @@
                 ln -s ${pkgs.esbuild}/bin/esbuild _build/esbuild-${translatedPlatform}
 
                 ${elixir}/bin/mix assets.deploy
-                ${elixir}/bin/mix phx.gen.release
               '';
             };
             nixosModule =
@@ -117,9 +122,9 @@
                       wantedBy = [ "multi-user.target" ];
                       script = ''
                         export RELEASE_COOKIE=secret_cookie
+                        echo hello
 
-                        ${default}/bin/migrate
-                        ${default}/bin/server
+                        # ${default}/bin/server
                       '';
                       serviceConfig = {
                         User = user;
