@@ -8,7 +8,6 @@
 import Config
 
 config :bungod,
-  ecto_repos: [Bungod.Repo],
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
