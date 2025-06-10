@@ -11,7 +11,7 @@ Environment="PHX_SERVER=true"
 Environment="LANG=en_US.UTF-8"
 Environment="DISPLAY=:0"
 Environment="XAUTHORITY=/home/bhutch/.Xauthority"
-Environment="WAYLAND_DISPLAY=wayland-0"
+Environment="WAYLAND_DISPLAY=wayland-1"
  
 WorkingDirectory=/home/bhutch/projects/elixir/bungod
 
