@@ -28,15 +28,15 @@ run_release_prod:
 
 install_service:
   sudo cp bungod.service /etc/systemd/system
-  systemctl enable --now bungod
+  systemctl --user enable --now bungod
 
 reinstall_service:
   sudo cp bungod.service /etc/systemd/system
-  systemctl daemon-reload
-  systemctl restart bungod
+  systemctl --user daemon-reload
+  systemctl --user restart bungod
 
 restart_service:
-  systemctl restart bungod
+  systemctl --user restart bungod
 
 monitor_service:
   journalctl -u bungod --follow

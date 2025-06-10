@@ -1,4 +1,6 @@
 defmodule Clipboard do
+  require Logger
+
   @moduledoc """
   Copy and paste from system clipboard.
   """
@@ -22,8 +24,14 @@ defmodule Clipboard do
   """
   @spec copy(iodata) :: iodata
   def copy(value) do
-    copy(:os.type(), value)
-    value
+    case copy(:os.type(), value) do
+      :ok ->
+        value
+
+      {:error, reason} ->
+        Logger.info("Copy failed: #{reason}")
+        value
+    end
   end
 
   @doc """
@@ -62,7 +70,8 @@ defmodule Clipboard do
   @spec paste() :: String.t()
   def paste do
     case paste(:os.type()) do
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.info("Paste failed: #{reason}")
         nil
 
       output ->

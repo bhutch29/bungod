@@ -108,12 +108,13 @@
                 config = lib.mkIf cfg.enable {
                   environment.systemPackages = [ bungodPkg ];
 
-                  systemd.services = {
+                  systemd.user.services = {
                     bungod = {
                       description = "Bungod daemon";
-                      wantedBy = [ "multi-user.target" ];
-                      after = ["sys-subsystem-net-devices-tailscale0.device" "tailscaled.service"];
-                      requires = ["tailscaled.service"];
+                      wantedBy = [ "graphical-session.target" ];
+                      after = [ "sys-subsystem-net-devices-tailscale0.device" "graphical-session.target" ];
+                      partOf = [ "graphical-session.target" ];
+                      requisite = [ "graphical-session.target" ];
                       environment = {
                         PORT = toString cfg.port;
                         MIX_ENV = "prod";
@@ -122,15 +123,11 @@
                         DISPLAY = ":0";
                         XAUTHORITY = "/home/bhutch/.Xauthority";
                         WAYLAND_DISPLAY = "wayland-1";
-                        XDG_RUNTIME_DIR = "/run/user/1000";
                       };
                       serviceConfig = {
                         Type = "simple";
                         Restart = "on-failure";
-                        Environment = "PATH=${pkgs.tailscale}/bin:$PATH";
-                        User = "bhutch";
-                        BindPaths = "/run/user/1000/wayland-1";
-
+                        Environment = "PATH=${pkgs.tailscale}/bin:/etc/profiles/per-user/bhutch/bin:$PATH";
                         # WorkingDirectory = "/home/bhutch/projects/elixir/bungod";
                         ExecStart = "${bungodPkg}/bin/bungod start";
                         ExecStop = "${bungodPkg}/bin/bungod stop";
