@@ -121,11 +121,15 @@
                         LANG = "en_US.UTF-8";
                         DISPLAY = ":0";
                         XAUTHORITY = "/home/bhutch/.Xauthority";
+                        WAYLAND_DISPLAY = "wayland-1";
+                        XDG_RUNTIME_DIR = "/run/user/1000";
                       };
                       serviceConfig = {
                         Type = "simple";
                         Restart = "on-failure";
                         Environment = "PATH=${pkgs.tailscale}/bin:$PATH";
+                        User = "bhutch";
+                        BindPaths = "/run/user/1000/wayland-1";
 
                         # WorkingDirectory = "/home/bhutch/projects/elixir/bungod";
                         ExecStart = "${bungodPkg}/bin/bungod start";
