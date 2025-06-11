@@ -53,7 +53,7 @@ defmodule Clipboard do
   defp copy({:unix, _os_name}, value) do
     command = case System.find_executable("wl-copy") do
       nil -> {"xclip", ["-sel", "clip"]} 
-      _ -> {"wl-copy", []}
+      _ -> {"wl-copy", ["--trim-newline"]}
     end
     execute(command, value)
   end
@@ -98,7 +98,7 @@ defmodule Clipboard do
   defp paste({:unix, _os_name}) do
     command = case System.find_executable("wl-paste") do
       nil -> {"xclip", ["-o", "-sel", "clip"]} 
-      _ -> {"wl-paste", []}
+      _ -> {"wl-paste", ["--no-newline"]}
     end
     execute(command)
   end
