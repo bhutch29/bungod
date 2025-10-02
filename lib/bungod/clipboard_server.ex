@@ -17,18 +17,22 @@ defmodule Bungod.ClipboardServer do
     {:noreply, state}
   end
 
-  def handle_info({:update_clipboard, clipboard}, state) do
-    Logger.info("New clip: #{clipboard}")
-    Clipboard.copy(clipboard)
-    {:noreply, %{state | content: clipboard, syncing: true}}
+  def handle_info({:update_clipboard, clipboard, from_node}, state) do
+    if from_node == node() do 
+      {:noreply, state}
+    else
+
+      Clipboard.copy(clipboard)
+      {:noreply, %{state | content: clipboard, syncing: true}}
+    end
   end
 
   def handle_info(:check_clipboard, %{content: content, syncing: syncing} = state) do
     clipboard = Clipboard.paste()
 
     if clipboard != nil && clipboard != "" && clipboard != content && !syncing do
-      Logger.debug("Clipboard contents changed, broadcasting.")
-      Phoenix.PubSub.broadcast(Bungod.PubSub, "clipboard", {:update_clipboard, clipboard})
+      Logger.debug("Clipboard contents changed, broadcasting: " <> clipboard)
+      Phoenix.PubSub.broadcast(Bungod.PubSub, "clipboard", {:update_clipboard, clipboard, node()})
     end
 
     schedule_check()
