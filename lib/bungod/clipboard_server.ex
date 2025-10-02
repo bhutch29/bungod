@@ -9,7 +9,7 @@ defmodule Bungod.ClipboardServer do
   def init(_) do
     Phoenix.PubSub.subscribe(Bungod.PubSub, "clipboard")
     schedule_check()
-    {:ok, %{content: Clipboard.paste(), syncing: false}}
+    {:ok, %{content: Clipboard.paste()}}
   end
 
   # Clipboard uses Port which sends :closed message that needed handling to avoid crash
@@ -20,20 +20,22 @@ defmodule Bungod.ClipboardServer do
   def handle_info({:update_clipboard, clipboard}, state) do
     Logger.info("New clip: #{clipboard}")
     Clipboard.copy(clipboard)
-    {:noreply, %{state | content: clipboard, syncing: true}}
+    {:noreply, %{state | content: clipboard}}
   end
 
-  def handle_info(:check_clipboard, %{content: content, syncing: syncing} = state) do
+  def handle_info(:check_clipboard, %{content: content} = state) do
     clipboard = Clipboard.paste()
 
-    if clipboard != nil && clipboard != "" && clipboard != content && !syncing do
-      Logger.debug("Clipboard contents changed, broadcasting.")
+    new_state = if clipboard != nil && clipboard != "" && clipboard != content do
+      Logger.debug("Clipboard contents changed locally, broadcasting.")
       Phoenix.PubSub.broadcast(Bungod.PubSub, "clipboard", {:update_clipboard, clipboard})
+      %{state | content: clipboard}
+    else
+      state
     end
 
     schedule_check()
-
-    {:noreply, %{state | content: clipboard, syncing: false}}
+    {:noreply, new_state}
   end
 
   defp schedule_check do
