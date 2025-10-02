@@ -21,7 +21,7 @@ defmodule Bungod.ClipboardServer do
     if from_node == node() do 
       {:noreply, state}
     else
-
+      Logger.info("New clip: #{clipboard}")
       Clipboard.copy(clipboard)
       {:noreply, %{state | content: clipboard, syncing: true}}
     end
