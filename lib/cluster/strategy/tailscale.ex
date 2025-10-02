@@ -12,7 +12,7 @@ defmodule Cluster.Strategy.Tailscale do
   alias Cluster.Strategy.State
   require Logger
 
-  @polling_interval 30_000
+  @polling_interval 60_000
 
   def start_link(args), do: GenServer.start_link(__MODULE__, args)
 
